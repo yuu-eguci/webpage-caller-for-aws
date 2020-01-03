@@ -1,10 +1,11 @@
+import os
 import json
 import requests
 
 
 def lambda_handler(event, context):
     # TODO: Specify access url with environment variable.
-    res = requests.get('')
+    res = requests.get(os.environ['TARGET_URL'])
     return {
         'statusCode': 200,
         'body': json.dumps({
