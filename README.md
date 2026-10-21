@@ -19,11 +19,12 @@ docker compose down
 ```
 
 呼び出し先は環境変数 `TARGET_URL` で指定します。省略時は `https://example.com/` です。
-呼び出し先が 10 秒以内に応答しないときは `requests.exceptions.Timeout` 系の例外でエラーになります。
 
 ```bash
 TARGET_URL=https://example.org/ docker compose up --build -d
 ```
+
+呼び出し先が 10 秒以内に応答しないときは `requests.exceptions.Timeout` 系の例外でエラーになります。
 
 Lambda の Runtime Interface Emulator 入りの公式ベースイメージで動かしているので、ローカルでも Lambda と同じ形で invoke できます。
 
