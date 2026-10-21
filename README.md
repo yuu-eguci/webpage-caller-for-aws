@@ -1,7 +1,7 @@
 webpage-caller-for-aws
 ===
 
-This repository does only call a web page which is specified with environment variable, from AWS lambda.
+環境変数で指定した Web ページを AWS Lambda から呼び出すだけ。
 
 - Docker: 対応!
 - Python: 3.14!
@@ -11,28 +11,34 @@ This repository does only call a web page which is specified with environment va
 
 ## パッと実行してみたい
 
+コマンドは bash 前提。 Windows では WSL などの bash 環境で実行する。
+
 ```bash
 docker compose up --build -d
 curl -s -X POST http://localhost:9000/2015-03-31/functions/function/invocations -d '{}'
 # => {"statusCode": 200, "body": "{\"result\": 200}"}
 docker compose logs app
-# => app-1  | TARGET_URL responded with 200 (ほかに RIE のログも出ます)
+# => app-1  | TARGET_URL responded with 200 (ほかに RIE のログも出る)
 docker compose down
 ```
 
-Lambda の Runtime Interface Emulator 入りの公式ベースイメージで動かしているので、ローカルでも Lambda と同じ形で invoke できます。
+公式イメージに付属する Runtime Interface Emulator を使い、ローカルでも Lambda と同じ形式で呼び出せる。
 
-呼び出し先は環境変数 `TARGET_URL` で指定します。docker compose で省略したときは `https://example.com/` になります (Lambda では省略できません)。
+呼び出し先は環境変数 `TARGET_URL` で指定する。
+Docker Compose で省略すると `https://example.com/` を使う。
+Lambda では `TARGET_URL` の指定が必要。
 
 ```bash
 TARGET_URL=https://example.org/ docker compose up --build -d
 ```
 
-呼び出し先が 10 秒以内に応答しないときは `requests.exceptions.Timeout` 系の例外でエラーになります。
-リダイレクトは追いかけるので、result には最後のレスポンスのステータスコードが入ります (たとえば `http://github.com/` は 301 を返しますが、result は 200 になります)。
+接続や読み取りのタイムアウトは 10 秒。超えると `requests.exceptions.Timeout` 系の例外になる。
+リダイレクト先も追いかけ、`result` には最後のレスポンスのステータスコードを入れる。
 
-呼び出し先のステータスコードはログにも出します。EventBridge (旧 CloudWatch Events) から定期実行するときは戻り値がどこにも残らないので、結果は CloudWatch Logs で見てください。
-URL はトークン入りのこともあるのでログには出しません。ただ、接続エラーやタイムアウトのときの例外メッセージには URL が含まれます。
+呼び出し先のステータスコードはログにも出す。
+EventBridge (旧 CloudWatch Events) から定期実行するときも、CloudWatch Logs で結果を確認できる。
+URL はトークンを含むことがあるので、通常の結果ログには出さない。
+接続エラーやタイムアウト時の例外メッセージには URL が含まれることがある。
 
 ## テストと lint
 
@@ -43,10 +49,11 @@ docker compose run --rm dev ruff format --check .
 docker run --rm -i hadolint/hadolint:v2.15.1 < Dockerfile
 ```
 
-ローカルに Python 3.14 と pipenv があるなら、`pipenv install --dev` してから `pipenv run pytest` とかでも OK です。
+ローカルに Python 3.14 と pipenv があれば、`pipenv install --dev` → `pipenv run pytest` でも OK。
 
-テストは requests をモックするか、ローカルのソケットや HTTP サーバーに投げるだけなので、外には通信しません。
-GitHub Actions でも同じコマンドと、Docker イメージのビルド + RIE への invoke、zip を素の Lambda ベースイメージに載せての invoke を回しています。
+単体テストは requests のモックとローカルのソケット・HTTP サーバーを使う。外には通信しない。
+GitHub Actions では lint・テストに加え、Docker と配布用 zip の両方を RIE で呼び出して確認する。
+この起動確認では example.com へ通信する。
 
 ## 依存を更新したい
 
@@ -55,7 +62,8 @@ docker compose run --rm dev pipenv lock
 docker compose run --rm --build dev pytest
 ```
 
-`pipenv lock` で Pipfile の範囲内の最新版に Pipfile.lock が更新されます。そのあとは `--build` を付けてイメージを作り直してください。
+`pipenv lock` で Pipfile の指定範囲内の依存を更新する。
+更新後は `--build` を付けてイメージを作り直す。
 
 ## Lambda にアップロードする zip を作る
 
@@ -64,15 +72,17 @@ docker build --platform linux/amd64 --target package --output type=local,dest=di
 # => dist/project.zip
 ```
 
-`--platform` は Lambda のアーキテクチャに合わせてください (x86_64 なら `linux/amd64`、arm64 なら `linux/arm64`)。
-指定しないとビルドしたマシンのアーキテクチャ用のバイナリが zip に入るので、たとえば Apple Silicon で作った zip を x86_64 の Lambda に上げると、charset_normalizer が高速化用のバイナリを使えません。
+`--platform` は Lambda のアーキテクチャに合わせる (x86_64 なら `linux/amd64`、arm64 なら `linux/arm64`)。
+ARM64 Linux で amd64 向けにビルドする場合は、binfmt/QEMU などのエミュレーションが必要。 Docker Desktop では通常そのまま使える。
+指定しないとビルド元のアーキテクチャ用バイナリが zip に入る。
+たとえば Apple Silicon でビルドした zip を x86_64 の Lambda に上げると、charset_normalizer の高速化用バイナリを使えない。
 
-Lambda 側の設定はこんな感じです。
+Lambda 側の設定はこんな感じ。
 
 - Runtime: Python 3.14
 - Architecture: x86_64 (arm64 にするなら zip も `linux/arm64` で作る)
 - Handler: `lambda_function.lambda_handler`
 - 環境変数: `TARGET_URL`
-- Timeout: 10 秒より長めに (デフォルトの 3 秒のままだと、呼び出し先が遅いとき先に Lambda 側が落ちます)
+- Timeout: 10 秒より長めに (デフォルトの 3 秒のままだと、呼び出し先が遅いとき先に Lambda 側がタイムアウトする)
 
 ![AWS Lambda の Designer 画面。トリガーに CloudWatch Events と API Gateway がつながっている](media/media.png)
