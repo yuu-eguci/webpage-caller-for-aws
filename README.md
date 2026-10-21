@@ -19,6 +19,7 @@ docker compose down
 ```
 
 呼び出し先は環境変数 `TARGET_URL` で指定します。省略時は `https://example.com/` です。
+呼び出し先が 10 秒以内に応答しないときは `requests.exceptions.Timeout` 系の例外でエラーになります。
 
 ```bash
 TARGET_URL=https://example.org/ docker compose up --build -d
@@ -50,5 +51,6 @@ Lambda 側の設定はこんな感じです。
 - Runtime: Python 3.14
 - Handler: `lambda_function.lambda_handler`
 - 環境変数: `TARGET_URL`
+- Timeout: 10 秒より長めに (デフォルトの 3 秒のままだと、呼び出し先が遅いとき先に Lambda 側が落ちます)
 
 ![](media/media.png)

@@ -3,10 +3,11 @@ import os
 
 import requests
 
+TIMEOUT_SECONDS = 10
+
 
 def lambda_handler(event, context):
-    # TODO: Specify access url with environment variable.
-    res = requests.get(os.environ["TARGET_URL"])
+    res = requests.get(os.environ["TARGET_URL"], timeout=TIMEOUT_SECONDS)
     return {
         "statusCode": 200,
         "body": json.dumps({"result": res.status_code}),
