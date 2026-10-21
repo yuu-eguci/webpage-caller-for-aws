@@ -22,9 +22,11 @@ def test_lambda_handler_calls_target_url_and_returns_its_status(monkeypatch):
 
 
 def test_lambda_handler_logs_status_without_url(monkeypatch, capsys):
-    monkeypatch.setenv("TARGET_URL", "https://example.com/?token=secret")
+    url = "https://example.com/?token=secret"
+    monkeypatch.setenv("TARGET_URL", url)
     with mock.patch("lambda_function.requests.get") as get:
         get.return_value.status_code = 503
+        get.return_value.url = url
 
         lambda_function.lambda_handler({}, None)
 
