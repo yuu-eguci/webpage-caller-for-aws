@@ -19,6 +19,18 @@ def test_lambda_handler_calls_target_url_and_returns_its_status(monkeypatch):
     assert result == {"statusCode": 200, "body": json.dumps({"result": 404})}
 
 
+def test_lambda_handler_logs_status_without_url(monkeypatch, capsys):
+    monkeypatch.setenv("TARGET_URL", "https://example.com/?token=secret")
+    with mock.patch("lambda_function.requests.get") as get:
+        get.return_value.status_code = 503
+
+        lambda_function.lambda_handler({}, None)
+
+    out = capsys.readouterr().out
+    assert "503" in out
+    assert "secret" not in out
+
+
 def test_lambda_handler_raises_timeout_when_target_does_not_respond(monkeypatch):
     # The kernel completes the TCP handshake via the backlog, but nobody ever
     # accepts the connection, so no response comes back.
