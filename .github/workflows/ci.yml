@@ -28,7 +28,7 @@ jobs:
       - run: docker compose up --build -d
       - name: Invoke the function via RIE
         run: |
-          body=$(curl -sf --retry 10 --retry-connrefused --retry-delay 1 \
+          body=$(curl -sf --retry 10 --retry-all-errors --retry-delay 1 \
             -X POST http://localhost:9000/2015-03-31/functions/function/invocations -d '{}')
           echo "$body"
           test "$body" = '{"statusCode": 200, "body": "{\"result\": 200}"}'
@@ -38,4 +38,13 @@ jobs:
       - name: Build the deployment zip
         run: |
           docker build --platform linux/amd64 --target package --output type=local,dest=dist .
-          python3 -m zipfile -l dist/project.zip | grep -E '^lambda_function\.py '
+      - name: Invoke the deployment zip via RIE
+        run: |
+          python3 -m zipfile -e dist/project.zip dist/project
+          docker run -d -p 9001:8080 -v "$PWD/dist/project:/var/task:ro" \
+            -e TARGET_URL=https://example.com/ \
+            public.ecr.aws/lambda/python:3.14 lambda_function.lambda_handler
+          body=$(curl -sf --retry 10 --retry-all-errors --retry-delay 1 \
+            -X POST http://localhost:9001/2015-03-31/functions/function/invocations -d '{}')
+          echo "$body"
+          test "$body" = '{"statusCode": 200, "body": "{\"result\": 200}"}'
