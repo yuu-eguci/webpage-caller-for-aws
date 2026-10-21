@@ -13,14 +13,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.14"
-      - run: pip install pipenv
-      - run: pipenv install --dev --deploy
-      - run: pipenv run ruff check .
-      - run: pipenv run ruff format --check .
-      - run: pipenv run pytest
+      - run: docker compose run --rm --build dev ruff check .
+      - run: docker compose run --rm dev ruff format --check .
+      - run: docker compose run --rm dev pytest
 
   docker:
     runs-on: ubuntu-latest

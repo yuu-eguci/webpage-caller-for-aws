@@ -11,6 +11,12 @@ RUN cd /opt/deps && python -m zipfile -c /tmp/project.zip *
 FROM scratch AS package
 COPY --from=zipper /tmp/project.zip /
 
+FROM python:3.14-slim AS dev
+WORKDIR /app
+COPY Pipfile Pipfile.lock ./
+RUN pip install --no-cache-dir pipenv \
+    && pipenv install --dev --system --deploy
+
 FROM public.ecr.aws/lambda/python:3.14 AS app
 COPY --from=deps /opt/deps ${LAMBDA_TASK_ROOT}
 COPY lambda_function.py ${LAMBDA_TASK_ROOT}

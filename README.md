@@ -31,14 +31,15 @@ Lambda の Runtime Interface Emulator 入りの公式ベースイメージで動
 ## テストと lint
 
 ```bash
-pipenv install --dev
-pipenv run pytest
-pipenv run ruff check .
-pipenv run ruff format --check .
+docker compose run --rm dev pytest
+docker compose run --rm dev ruff check .
+docker compose run --rm dev ruff format --check .
 ```
 
+ローカルに Python 3.14 と pipenv があるなら、`pipenv install --dev` してから `pipenv run pytest` とかでも OK です。
+
 テストでは requests をモックしているので外には通信しません。
-GitHub Actions でも同じものと、Docker イメージのビルド + RIE への invoke を回しています。
+GitHub Actions でも同じコマンドと、Docker イメージのビルド + RIE への invoke を回しています。
 
 ## Lambda にアップロードする zip を作る
 
