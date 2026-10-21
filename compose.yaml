@@ -1,6 +1,8 @@
 services:
   app:
-    build: .
+    build:
+      context: .
+      target: app
     ports:
       - "127.0.0.1:9000:8080"
     environment:
