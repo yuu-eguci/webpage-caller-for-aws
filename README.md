@@ -44,7 +44,7 @@ docker compose run --rm dev ruff format --check .
 
 ローカルに Python 3.14 と pipenv があるなら、`pipenv install --dev` してから `pipenv run pytest` とかでも OK です。
 
-テストは requests をモックするか、ローカルのソケットに投げるだけなので、外には通信しません。
+テストは requests をモックするか、ローカルのソケットや HTTP サーバーに投げるだけなので、外には通信しません。
 GitHub Actions でも同じコマンドと、Docker イメージのビルド + RIE への invoke、zip を素の Lambda ベースイメージに載せての invoke を回しています。
 
 ## 依存を更新したい
