@@ -5,7 +5,7 @@ This repository does only call a web page which is specified with environment va
 
 - Docker: 対応!
 - Python: 3.14!
-- Linter: ruff!
+- Linter: ruff, hadolint!
 - Test: pytest!
 - requests: 2.34!
 
@@ -40,6 +40,7 @@ URL はトークン入りのこともあるのでログには出しません。�
 docker compose run --rm dev pytest
 docker compose run --rm dev ruff check .
 docker compose run --rm dev ruff format --check .
+docker run --rm -i hadolint/hadolint:v2.15.1 < Dockerfile
 ```
 
 ローカルに Python 3.14 と pipenv があるなら、`pipenv install --dev` してから `pipenv run pytest` とかでも OK です。

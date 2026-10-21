@@ -19,6 +19,7 @@ jobs:
       - run: docker compose run --rm --build dev ruff check .
       - run: docker compose run --rm dev ruff format --check .
       - run: docker compose run --rm dev pytest
+      - run: docker run --rm -i hadolint/hadolint:v2.15.1 < Dockerfile
 
   docker:
     runs-on: ubuntu-latest

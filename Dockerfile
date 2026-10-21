@@ -2,14 +2,16 @@ ARG PIPENV_VERSION=2026.10.1
 
 FROM public.ecr.aws/lambda/python:3.14 AS deps
 ARG PIPENV_VERSION
+WORKDIR /build
 COPY Pipfile Pipfile.lock ./
 RUN pip install --no-cache-dir pipenv==${PIPENV_VERSION} \
     && pipenv requirements --hash > /tmp/requirements.txt \
     && pip install --no-cache-dir --require-hashes -r /tmp/requirements.txt --target /opt/deps
 
 FROM deps AS zipper
-COPY lambda_function.py /opt/deps/
-RUN cd /opt/deps && python -m zipfile -c /tmp/project.zip *
+WORKDIR /opt/deps
+COPY lambda_function.py ./
+RUN python -m zipfile -c /tmp/project.zip ./*
 
 FROM scratch AS package
 COPY --from=zipper /tmp/project.zip /
