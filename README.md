@@ -44,6 +44,15 @@ docker compose run --rm dev ruff format --check .
 テストは requests をモックするか、ローカルのソケットに投げるだけなので、外には通信しません。
 GitHub Actions でも同じコマンドと、Docker イメージのビルド + RIE への invoke、zip を素の Lambda ベースイメージに載せての invoke を回しています。
 
+## 依存を更新したい
+
+```bash
+docker compose run --rm dev pipenv lock
+docker compose run --rm --build dev pytest
+```
+
+`pipenv lock` で Pipfile の範囲内の最新版に Pipfile.lock が更新されます。そのあとは `--build` を付けてイメージを作り直してください。
+
 ## Lambda にアップロードする zip を作る
 
 ```bash
