@@ -18,7 +18,7 @@ curl -s -X POST http://localhost:9000/2015-03-31/functions/function/invocations 
 docker compose down
 ```
 
-呼び出し先は環境変数 `TARGET_URL` で指定します。省略時は `https://example.com/` です。
+呼び出し先は環境変数 `TARGET_URL` で指定します。docker compose で省略したときは `https://example.com/` になります (Lambda では省略できません)。
 
 ```bash
 TARGET_URL=https://example.org/ docker compose up --build -d
