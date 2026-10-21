@@ -37,5 +37,5 @@ jobs:
       - run: docker compose down
       - name: Build the deployment zip
         run: |
-          docker build --target package --output type=local,dest=dist .
+          docker build --platform linux/amd64 --target package --output type=local,dest=dist .
           python3 -m zipfile -l dist/project.zip | grep -E '^lambda_function\.py '

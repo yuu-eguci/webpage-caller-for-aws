@@ -47,13 +47,17 @@ GitHub Actions でも同じコマンドと、Docker イメージのビルド + R
 ## Lambda にアップロードする zip を作る
 
 ```bash
-docker build --target package --output type=local,dest=dist .
+docker build --platform linux/amd64 --target package --output type=local,dest=dist .
 # => dist/project.zip
 ```
+
+`--platform` は Lambda のアーキテクチャに合わせてください (x86_64 なら `linux/amd64`、arm64 なら `linux/arm64`)。
+指定しないとビルドしたマシンのアーキテクチャ用のバイナリが zip に入るので、たとえば Apple Silicon で作った zip を x86_64 の Lambda に上げると、charset_normalizer が高速化用のバイナリを使えません。
 
 Lambda 側の設定はこんな感じです。
 
 - Runtime: Python 3.14
+- Architecture: x86_64 (arm64 にするなら zip も `linux/arm64` で作る)
 - Handler: `lambda_function.lambda_handler`
 - 環境変数: `TARGET_URL`
 - Timeout: 10 秒より長めに (デフォルトの 3 秒のままだと、呼び出し先が遅いとき先に Lambda 側が落ちます)
