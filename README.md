@@ -24,6 +24,8 @@ docker compose down
 TARGET_URL=https://example.org/ docker compose up --build -d
 ```
 
+呼び出し先が 10 秒以内に応答しないときは `requests.exceptions.Timeout` 系の例外でエラーになります。
+
 Lambda の Runtime Interface Emulator 入りの公式ベースイメージで動かしているので、ローカルでも Lambda と同じ形で invoke できます。
 
 ## テストと lint
@@ -50,5 +52,6 @@ Lambda 側の設定はこんな感じです。
 - Runtime: Python 3.14
 - Handler: `lambda_function.lambda_handler`
 - 環境変数: `TARGET_URL`
+- Timeout: 10 秒より長めに (デフォルトの 3 秒のままだと、呼び出し先が遅いとき先に Lambda 側が落ちます)
 
 ![](media/media.png)
