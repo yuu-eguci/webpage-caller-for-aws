@@ -26,6 +26,9 @@ TARGET_URL=https://example.org/ docker compose up --build -d
 
 呼び出し先が 10 秒以内に応答しないときは `requests.exceptions.Timeout` 系の例外でエラーになります。
 
+呼び出し先のステータスコードはログにも出します。CloudWatch Events から定期実行するときは戻り値がどこにも残らないので、結果は CloudWatch Logs で見てください。
+URL はトークン入りのこともあるのでログには出しません。ただ、接続エラーやタイムアウトのときの例外メッセージには URL が含まれます。
+
 Lambda の Runtime Interface Emulator 入りの公式ベースイメージで動かしているので、ローカルでも Lambda と同じ形で invoke できます。
 
 ## テストと lint
