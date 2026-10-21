@@ -1,0 +1,4 @@
+*
+!Pipfile
+!Pipfile.lock
+!lambda_function.py

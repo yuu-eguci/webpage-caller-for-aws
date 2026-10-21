@@ -4,6 +4,6 @@
 __pycache__
 .vscode
 .python-version
-.vagrant
 *.log
 *.zip
+dist
