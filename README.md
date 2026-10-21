@@ -15,6 +15,8 @@ This repository does only call a web page which is specified with environment va
 docker compose up --build -d
 curl -s -X POST http://localhost:9000/2015-03-31/functions/function/invocations -d '{}'
 # => {"statusCode": 200, "body": "{\"result\": 200}"}
+docker compose logs app
+# => app-1  | TARGET_URL responded with 200 (ほかに RIE のログも出ます)
 docker compose down
 ```
 
@@ -71,4 +73,4 @@ Lambda 側の設定はこんな感じです。
 - 環境変数: `TARGET_URL`
 - Timeout: 10 秒より長めに (デフォルトの 3 秒のままだと、呼び出し先が遅いとき先に Lambda 側が落ちます)
 
-![](media/media.png)
+![AWS Lambda の Designer 画面。トリガーに CloudWatch Events と API Gateway がつながっている](media/media.png)
