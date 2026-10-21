@@ -13,6 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - run: docker compose run --rm --build dev ruff check .
       - run: docker compose run --rm dev ruff format --check .
       - run: docker compose run --rm dev pytest
@@ -21,6 +23,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - run: docker compose up --build -d
       - name: Invoke the function via RIE
         run: |
