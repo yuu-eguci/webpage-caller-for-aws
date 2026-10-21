@@ -27,6 +27,7 @@ TARGET_URL=https://example.org/ docker compose up --build -d
 ```
 
 呼び出し先が 10 秒以内に応答しないときは `requests.exceptions.Timeout` 系の例外でエラーになります。
+リダイレクトは追いかけるので、result には最後のレスポンスのステータスコードが入ります (たとえば `http://github.com/` は 301 を返しますが、result は 200 になります)。
 
 呼び出し先のステータスコードはログにも出します。CloudWatch Events から定期実行するときは戻り値がどこにも残らないので、結果は CloudWatch Logs で見てください。
 URL はトークン入りのこともあるのでログには出しません。ただ、接続エラーやタイムアウトのときの例外メッセージには URL が含まれます。
@@ -43,7 +44,7 @@ docker compose run --rm dev ruff format --check .
 
 ローカルに Python 3.14 と pipenv があるなら、`pipenv install --dev` してから `pipenv run pytest` とかでも OK です。
 
-テストは requests をモックするか、ローカルのソケットに投げるだけなので、外には通信しません。
+テストは requests をモックするか、ローカルのソケットや HTTP サーバーに投げるだけなので、外には通信しません。
 GitHub Actions でも同じコマンドと、Docker イメージのビルド + RIE への invoke、zip を素の Lambda ベースイメージに載せての invoke を回しています。
 
 ## 依存を更新したい

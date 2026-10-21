@@ -1,5 +1,7 @@
 import json
 import socket
+import threading
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from unittest import mock
 
 import pytest
@@ -41,3 +43,30 @@ def test_lambda_handler_raises_timeout_when_target_does_not_respond(monkeypatch)
 
         with pytest.raises(requests.exceptions.Timeout):
             lambda_function.lambda_handler({}, None)
+
+
+class RedirectHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == "/":
+            self.send_response(301)
+            self.send_header("Location", "/moved")
+        else:
+            self.send_response(200)
+        self.send_header("Content-Length", "0")
+        self.end_headers()
+
+    def log_message(self, format, *args):
+        pass
+
+
+def test_lambda_handler_follows_redirects_and_returns_final_status(monkeypatch):
+    with ThreadingHTTPServer(("127.0.0.1", 0), RedirectHandler) as server:
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        port = server.server_address[1]
+        monkeypatch.setenv("TARGET_URL", f"http://127.0.0.1:{port}/")
+
+        result = lambda_function.lambda_handler({}, None)
+
+        server.shutdown()
+
+    assert result["body"] == json.dumps({"result": 200})
