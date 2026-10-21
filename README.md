@@ -27,6 +27,7 @@ TARGET_URL=https://example.org/ docker compose up --build -d
 ```
 
 呼び出し先が 10 秒以内に応答しないときは `requests.exceptions.Timeout` 系の例外でエラーになります。
+リダイレクトは追いかけるので、result には最後のレスポンスのステータスコードが入ります (たとえば `http://github.com/` は 301 を返しますが、result は 200 になります)。
 
 呼び出し先のステータスコードはログにも出します。CloudWatch Events から定期実行するときは戻り値がどこにも残らないので、結果は CloudWatch Logs で見てください。
 URL はトークン入りのこともあるのでログには出しません。ただ、接続エラーやタイムアウトのときの例外メッセージには URL が含まれます。
