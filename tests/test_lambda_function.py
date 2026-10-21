@@ -35,14 +35,19 @@ def test_lambda_handler_logs_status_without_url(monkeypatch, capsys):
 
 def test_lambda_handler_raises_timeout_when_target_does_not_respond(monkeypatch):
     # The kernel completes the TCP handshake via the backlog, but nobody ever
-    # accepts the connection, so no response comes back.
+    # accepts the connection, so no response comes back. Closing the server
+    # later resets the connection, so the test fails instead of hanging if
+    # the timeout is ever lost.
     with socket.create_server(("127.0.0.1", 0)) as server:
+        closer = threading.Timer(3, server.close)
+        closer.start()
         port = server.getsockname()[1]
         monkeypatch.setenv("TARGET_URL", f"http://127.0.0.1:{port}/")
         monkeypatch.setattr(lambda_function, "TIMEOUT_SECONDS", 0.1)
 
         with pytest.raises(requests.exceptions.Timeout):
             lambda_function.lambda_handler({}, None)
+        closer.cancel()
 
 
 class RedirectHandler(BaseHTTPRequestHandler):
