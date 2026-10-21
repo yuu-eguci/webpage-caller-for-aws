@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+      - run: pip install pipenv
+      - run: pipenv install --dev --deploy
+      - run: pipenv run ruff check .
+      - run: pipenv run ruff format --check .
+      - run: pipenv run pytest
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: docker compose up --build -d
+      - name: Invoke the function via RIE
+        run: |
+          body=$(curl -sf --retry 10 --retry-connrefused --retry-delay 1 \
+            -X POST http://localhost:9000/2015-03-31/functions/function/invocations -d '{}')
+          echo "$body"
+          test "$body" = '{"statusCode": 200, "body": "{\"result\": 200}"}'
+      - run: docker compose logs
+        if: always()
+      - run: docker compose down
+      - name: Build the deployment zip
+        run: |
+          docker build --target package --output type=local,dest=dist .
+          python3 -m zipfile -l dist/project.zip | grep -E '^lambda_function\.py '

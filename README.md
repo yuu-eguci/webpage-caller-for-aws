@@ -5,6 +5,8 @@ This repository does only call a web page which is specified with environment va
 
 - Docker: 対応!
 - Python: 3.14!
+- Linter: ruff!
+- Test: pytest!
 - requests: 2.34!
 
 ## パッと実行してみたい
@@ -23,6 +25,18 @@ TARGET_URL=https://example.org/ docker compose up --build -d
 ```
 
 Lambda の Runtime Interface Emulator 入りの公式ベースイメージで動かしているので、ローカルでも Lambda と同じ形で invoke できます。
+
+## テストと lint
+
+```bash
+pipenv install --dev
+pipenv run pytest
+pipenv run ruff check .
+pipenv run ruff format --check .
+```
+
+テストでは requests をモックしているので外には通信しません。
+GitHub Actions でも同じものと、Docker イメージのビルド + RIE への invoke を回しています。
 
 ## Lambda にアップロードする zip を作る
 
